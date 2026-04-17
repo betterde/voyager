@@ -1,0 +1,47 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts (phpize)
+build/
+config.h
+config.h.in
+config.log
+config.nice
+config.status
+configure
+libtool
+Makefile
+Makefile.fragments
+Makefile.objects
+*.lo
+*.la
+*.dep
+*.o
+*.a
+
+# Build output
+modules/
+.libs/
+include/
+
+# Autoconf
+autom4te.cache/
+
+# Debug symbols
+*.dSYM/
+
+# PHP test output files
+tests/*.diff
+tests/*.exp
+tests/*.log
+tests/*.out
+tests/*.php
+tests/*.sh
+!tests/.gitkeep

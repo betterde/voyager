@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.10.13" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+ <name>voyager</name>
+ <channel>pecl.php.net</channel>
+ <summary>Runtime function and method redefinition for PHP</summary>
+ <description>Voyager allows you to redefine existing user-defined functions and class methods at runtime. This is primarily intended for debugging, hot-fixing, and instrumentation in production environments. It supports closure-based API, inheritance propagation, magic method handling, and automatic reflection cleanup.</description>
+ <lead>
+  <name>George King</name>
+  <user>george</user>
+  <email>george@betterde.com</email>
+  <active>yes</active>
+ </lead>
+ <date>2026-04-18</date>
+ <version>
+  <release>8.2.0</release>
+  <api>8.2.0</api>
+ </version>
+ <stability>
+  <release>stable</release>
+  <api>stable</api>
+ </stability>
+ <license uri="http://opensource.org/licenses/MIT">MIT License</license>
+ <notes>
+- Initial release of voyager extension
+- voyager_function_redefine(): Redefine user-defined functions at runtime
+- voyager_method_redefine(): Redefine class methods with inheritance propagation
+- Supports both closure and string-body calling modes
+- Automatic cache invalidation and reflection object cleanup
+ </notes>
+ <contents>
+  <dir name="/">
+   <file name="config.m4" role="src" />
+   <file name="php_voyager.h" role="src" />
+   <file name="voyager.h" role="src" />
+   <file name="voyager.c" role="src" />
+   <file name="voyager_functions.c" role="src" />
+   <file name="voyager_methods.c" role="src" />
+   <file name="voyager_common.c" role="src" />
+   <file name="voyager.stub.php" role="src" />
+   <file name="voyager_arginfo.h" role="src" />
+   <dir name="tests">
+    <file name=".gitkeep" role="test" />
+   </dir>
+  </dir>
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>8.1.0</min>
+    <max>8.2.99</max>
+   </php>
+   <pearinstaller>
+    <min>1.4.0</min>
+   </pearinstaller>
+  </required>
+ </dependencies>
+ <providesextension>voyager</providesextension>
+ <extsrcrelease />
+ <changelog>
+  <release>
+   <date>2026-04-18</date>
+   <version>
+    <release>8.2.0</release>
+    <api>8.2.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <license uri="http://opensource.org/licenses/MIT">MIT License</license>
+   <notes>
+- Initial release of voyager extension
+- voyager_function_redefine(): Redefine user-defined functions at runtime
+- voyager_method_redefine(): Redefine class methods with inheritance propagation
+- Supports both closure and string-body calling modes
+- Automatic cache invalidation and reflection object cleanup
+   </notes>
+  </release>
+ </changelog>
+</package>

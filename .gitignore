@@ -16,6 +16,7 @@ config.log
 config.nice
 config.status
 configure
+configure.ac
 libtool
 Makefile
 Makefile.fragments
@@ -45,3 +46,4 @@ tests/*.out
 tests/*.php
 tests/*.sh
 !tests/.gitkeep
+run-tests.php

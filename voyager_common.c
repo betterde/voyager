@@ -5,7 +5,7 @@
 | This source file is subject to the MIT license,
 | that is bundled with this package in the file LICENSE, and is        |
 | available through the world-wide-web at the following url:           |
-| http://www.opensource.org/licenses/MIT
+| https://opensource.org/license/MIT
 +----------------------------------------------------------------------+
 | Author: George King <george@betterde.com>                            |
 +----------------------------------------------------------------------+

@@ -34,6 +34,8 @@ static void php_voyager_init_globals(void *voyager_globals)
     globals->internal_override = 0;
     globals->misplaced_internal_functions = NULL;
     globals->replaced_internal_functions = NULL;
+    globals->request_function_restores = NULL;
+    globals->request_method_restores = NULL;
     globals->module_moved_to_front = 0;
     globals->original_func_resource_handle = 0;
     globals->removed_function = NULL;
@@ -98,6 +100,16 @@ PHP_MSHUTDOWN_FUNCTION(voyager)
         zend_hash_destroy(VOYAGER_G(replaced_internal_functions));
         FREE_HASHTABLE(VOYAGER_G(replaced_internal_functions));
     }
+    if (VOYAGER_G(request_method_restores)) {
+        zend_hash_destroy(VOYAGER_G(request_method_restores));
+        FREE_HASHTABLE(VOYAGER_G(request_method_restores));
+        VOYAGER_G(request_method_restores) = NULL;
+    }
+    if (VOYAGER_G(request_function_restores)) {
+        zend_hash_destroy(VOYAGER_G(request_function_restores));
+        FREE_HASHTABLE(VOYAGER_G(request_function_restores));
+        VOYAGER_G(request_function_restores) = NULL;
+    }
     UNREGISTER_INI_ENTRIES();
     return SUCCESS;
 }
@@ -109,6 +121,10 @@ PHP_RINIT_FUNCTION(voyager)
 #if defined(ZTS) && defined(COMPILE_DL_VOYAGER)
     ZEND_TSRMLS_CACHE_UPDATE();
 #endif
+    ALLOC_HASHTABLE(VOYAGER_G(request_method_restores));
+    zend_hash_init(VOYAGER_G(request_method_restores), 8, NULL, php_voyager_request_method_restore_dtor, 0);
+    ALLOC_HASHTABLE(VOYAGER_G(request_function_restores));
+    zend_hash_init(VOYAGER_G(request_function_restores), 8, NULL, php_voyager_request_function_restore_dtor, 0);
     return SUCCESS;
 }
 /* }}} */
@@ -116,6 +132,18 @@ PHP_RINIT_FUNCTION(voyager)
 /* {{{ PHP_RSHUTDOWN_FUNCTION */
 PHP_RSHUTDOWN_FUNCTION(voyager)
 {
+    php_voyager_restore_functions();
+    php_voyager_restore_methods();
+    if (VOYAGER_G(request_function_restores)) {
+        zend_hash_destroy(VOYAGER_G(request_function_restores));
+        FREE_HASHTABLE(VOYAGER_G(request_function_restores));
+        VOYAGER_G(request_function_restores) = NULL;
+    }
+    if (VOYAGER_G(request_method_restores)) {
+        zend_hash_destroy(VOYAGER_G(request_method_restores));
+        FREE_HASHTABLE(VOYAGER_G(request_method_restores));
+        VOYAGER_G(request_method_restores) = NULL;
+    }
     return SUCCESS;
 }
 /* }}} */

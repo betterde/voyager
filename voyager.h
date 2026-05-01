@@ -52,10 +52,25 @@ PHP_MINFO_FUNCTION(voyager);
 PHP_FUNCTION(voyager_function_redefine);
 PHP_FUNCTION(voyager_method_redefine);
 
+/* Request-scoped method restore entry */
+typedef struct _voyager_method_restore {
+    zend_class_entry *ce;
+    zend_string *methodname_lower;
+    zend_function *orig_fe;
+} voyager_method_restore;
+
+/* Request-scoped function restore entry */
+typedef struct _voyager_function_restore {
+    zend_string *funcname_lower;
+    zend_function *orig_fe;
+} voyager_function_restore;
+
 /* Module globals */
 ZEND_BEGIN_MODULE_GLOBALS(voyager)
     HashTable *misplaced_internal_functions;
     HashTable *replaced_internal_functions;
+    HashTable *request_function_restores;
+    HashTable *request_method_restores;
     zend_bool internal_override;
     const char *name_str, *removed_method_str, *removed_function_str, *removed_parameter_str;
     zend_function *removed_function, *removed_method;
@@ -241,6 +256,8 @@ void php_voyager_fix_all_hardcoded_stack_sizes(zend_string *called_name_lower, z
 void php_voyager_remove_function_from_reflection_objects(zend_function *fe);
 zend_function *php_voyager_function_clone(zend_function *fe, zend_string *newname, char orig_fe_type);
 void php_voyager_function_dtor(zend_function *fe);
+void php_voyager_request_function_restore_dtor(zval *zv);
+void php_voyager_restore_functions(void);
 int php_voyager_generate_lambda_function(const zend_string *arguments, const zend_string *return_type, const zend_bool is_strict, const zend_string *phpcode, zend_function **pfe, zend_bool return_ref);
 int php_voyager_generate_lambda_method(const zend_string *arguments, const zend_string *return_type, const zend_bool is_strict, const zend_string *phpcode, zend_function **pfe, zend_bool return_ref, zend_bool is_static);
 int php_voyager_cleanup_lambda_function(void);
@@ -253,6 +270,8 @@ void php_voyager_clean_children_methods(zend_class_entry *ce, zend_class_entry *
 void php_voyager_clean_children_methods_foreach(HashTable *ht, zend_class_entry *ancestor_class, zend_class_entry *parent_class, zend_string *fname_lower, zend_function *orig_cfe);
 void php_voyager_update_children_methods(zend_class_entry *ce, zend_class_entry *ancestor_class, zend_class_entry *parent_class, zend_function *fe, zend_string *fname_lower, zend_function *orig_fe);
 void php_voyager_update_children_methods_foreach(HashTable *ht, zend_class_entry *ancestor_class, zend_class_entry *parent_class, zend_function *fe, zend_string *fname_lower, zend_function *orig_fe);
+void php_voyager_request_method_restore_dtor(zval *zv);
+void php_voyager_restore_methods(void);
 
 /* voyager_common.c */
 void PHP_VOYAGER_ADD_MAGIC_METHOD(zend_class_entry *ce, zend_string *lcmname, zend_function *fe, const zend_function *orig_fe);

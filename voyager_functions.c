@@ -395,6 +395,23 @@ void php_voyager_function_dtor(zend_function *fe)
 }
 /* }}} */
 
+/* {{{ php_voyager_request_function_restore_dtor */
+void php_voyager_request_function_restore_dtor(zval *zv)
+{
+    voyager_function_restore *restore = (voyager_function_restore *)Z_PTR_P(zv);
+    if (!restore) {
+        return;
+    }
+    if (restore->funcname_lower) {
+        zend_string_release(restore->funcname_lower);
+    }
+    if (restore->orig_fe) {
+        php_voyager_function_dtor(restore->orig_fe);
+    }
+    efree(restore);
+}
+/* }}} */
+
 /* {{{ php_voyager_remove_function_from_reflection_objects */
 void php_voyager_remove_function_from_reflection_objects(zend_function *fe)
 {
@@ -757,6 +774,45 @@ static inline void *voyager_zend_hash_add_or_update_function_table_ptr(HashTable
 }
 /* }}} */
 
+/* {{{ php_voyager_restore_functions
+       Restores all functions redefined during the current request.
+ */
+void php_voyager_restore_functions(void)
+{
+    HashTable *restores = VOYAGER_G(request_function_restores);
+    voyager_function_restore *restore;
+
+    if (!restores || zend_hash_num_elements(restores) == 0) {
+        return;
+    }
+
+    ZEND_HASH_FOREACH_PTR(restores, restore) {
+        zend_function *orig_fe;
+        zend_function *redefined_fe;
+
+        if (!restore || !restore->orig_fe) {
+            continue;
+        }
+
+        orig_fe = restore->orig_fe;
+        redefined_fe = zend_hash_find_ptr(EG(function_table), restore->funcname_lower);
+        if (redefined_fe) {
+            php_voyager_remove_function_from_reflection_objects(redefined_fe);
+        }
+
+        php_voyager_clear_all_functions_runtime_cache();
+        php_voyager_fix_all_hardcoded_stack_sizes(restore->funcname_lower, orig_fe);
+
+        if (voyager_zend_hash_add_or_update_function_table_ptr(EG(function_table),
+                restore->funcname_lower, orig_fe, HASH_UPDATE) != NULL) {
+            restore->orig_fe = NULL;
+        }
+    } ZEND_HASH_FOREACH_END();
+
+    php_voyager_clear_all_functions_runtime_cache();
+}
+/* }}} */
+
 /* {{{ php_voyager_function_add_or_update */
 static void php_voyager_function_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int add_or_update)
 {
@@ -869,6 +925,14 @@ static void php_voyager_function_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int
     php_voyager_modify_function_doc_comment(func, doc_comment);
 
     if (add_or_update == HASH_UPDATE) {
+        if (VOYAGER_G(request_function_restores) &&
+                !zend_hash_exists(VOYAGER_G(request_function_restores), funcname_lower)) {
+            voyager_function_restore *restore = emalloc(sizeof(voyager_function_restore));
+            restore->funcname_lower = zend_string_copy(funcname_lower);
+            restore->orig_fe = php_voyager_function_clone(orig_fe, orig_fe->common.function_name, 0);
+            restore->orig_fe->common.prototype = orig_fe->common.prototype;
+            zend_hash_add_ptr(VOYAGER_G(request_function_restores), funcname_lower, restore);
+        }
         php_voyager_remove_function_from_reflection_objects(orig_fe);
         php_voyager_clear_all_functions_runtime_cache();
         php_voyager_fix_all_hardcoded_stack_sizes(funcname_lower, func);

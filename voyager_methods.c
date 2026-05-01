@@ -303,7 +303,7 @@ static void php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int a
     methodname_lower = zend_string_tolower(methodname);
 
     if (add_or_update == HASH_UPDATE) {
-        if (php_voyager_fetch_class_method(classname, methodname_lower, &ce, &fe) == FAILURE) {
+        if (php_voyager_fetch_class_method(classname, methodname, &ce, &fe) == FAILURE) {
             zend_string_release(methodname_lower);
             RETURN_FALSE;
         }
@@ -371,6 +371,19 @@ static void php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int a
 
     if (orig_fe) {
         php_voyager_remove_function_from_reflection_objects(orig_fe);
+    }
+
+    /* Save original for request-scoped restoration (only on first redefine) */
+    if (orig_fe && add_or_update == HASH_UPDATE) {
+        zend_string *key = zend_strpprintf(0, "%p::%s", (void *)ce, ZSTR_VAL(methodname_lower));
+        if (!zend_hash_exists(VOYAGER_G(request_method_restores), key)) {
+            voyager_method_restore *restore = emalloc(sizeof(voyager_method_restore));
+            restore->ce = ce;
+            restore->methodname_lower = zend_string_copy(methodname_lower);
+            restore->orig_fe = orig_fe;
+            zend_hash_add_ptr(VOYAGER_G(request_method_restores), key, restore);
+        }
+        zend_string_release(key);
     }
 
     /* Save orig_fe data before the hash table may destroy the old entry */
@@ -459,5 +472,75 @@ static void php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int a
 PHP_FUNCTION(voyager_method_redefine)
 {
     php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, HASH_UPDATE);
+}
+/* }}} */
+
+/* {{{ php_voyager_request_method_restore_dtor */
+void php_voyager_request_method_restore_dtor(zval *zv)
+{
+    voyager_method_restore *restore = (voyager_method_restore *)Z_PTR_P(zv);
+    if (!restore) {
+        return;
+    }
+    if (restore->methodname_lower) {
+        zend_string_release(restore->methodname_lower);
+    }
+    efree(restore);
+}
+/* }}} */
+
+/* {{{ php_voyager_restore_methods
+       Restores all methods redefined during the current request to their original implementations.
+       Called from RSHUTDOWN to ensure request-scoped redefinitions don't leak into subsequent requests.
+ */
+void php_voyager_restore_methods(void)
+{
+    HashTable *restores = VOYAGER_G(request_method_restores);
+    if (!restores || zend_hash_num_elements(restores) == 0) {
+        return;
+    }
+
+    voyager_method_restore *restore;
+    ZEND_HASH_FOREACH_PTR(restores, restore) {
+        zend_class_entry *ce = restore->ce;
+        zend_string *methodname_lower = restore->methodname_lower;
+        zend_function *orig_fe = restore->orig_fe;
+
+        if (!orig_fe) {
+            continue;
+        }
+
+        /* Get current (redefined) function */
+        zend_function *redefined_fe = zend_hash_find_ptr(&ce->function_table, methodname_lower);
+
+        if (redefined_fe) {
+            php_voyager_remove_function_from_reflection_objects(redefined_fe);
+        }
+
+        /* Fix magic method pointers on the parent class */
+        if (redefined_fe) {
+            PHP_VOYAGER_DEL_MAGIC_METHOD(ce, redefined_fe);
+        }
+        PHP_VOYAGER_ADD_MAGIC_METHOD(ce, methodname_lower, orig_fe, NULL);
+
+        /* Disable destructor to prevent freeing orig_fe during hash update */
+        dtor_func_t dtor = ce->function_table.pDestructor;
+        ce->function_table.pDestructor = NULL;
+
+        /* Replace with original */
+        voyager_zend_hash_add_or_update_ptr(&ce->function_table, methodname_lower, orig_fe, HASH_UPDATE);
+
+        /* Re-enable destructor */
+        ce->function_table.pDestructor = dtor;
+
+        /* Propagate restoration to child classes */
+        php_voyager_update_children_methods_foreach(EG(class_table),
+            orig_fe->common.scope, ce, orig_fe, methodname_lower, redefined_fe);
+
+        /* Mark as restored so the hash table destructor won't free orig_fe */
+        restore->orig_fe = NULL;
+    } ZEND_HASH_FOREACH_END();
+
+    php_voyager_clear_all_functions_runtime_cache();
 }
 /* }}} */

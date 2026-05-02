@@ -4,6 +4,12 @@
 
 A PHP C extension for runtime debugging in production environments. Voyager allows you to redefine existing functions and methods at runtime — useful for hot-fixing, instrumentation, and debugging live systems.
 
+## How It Works
+
+<p align="center">
+  <img src="./assets/zend-hashtable-replacement.png" alt="How Voyager replaces code with Zend HashTables" width="100%">
+</p>
+
 ## Features
 
 - **Redefine functions** — Replace any user-defined function with a new implementation at runtime
@@ -12,13 +18,6 @@ A PHP C extension for runtime debugging in production environments. Voyager allo
 - **String body mode** — Pass argument lists and code as strings for dynamic code generation
 - **Inheritance-aware** — Method changes on parent classes automatically propagate to all child classes
 - **Reflection-safe** — Stale `ReflectionFunction`/`ReflectionMethod` objects are automatically invalidated
-
-## How It Works
-
-<p align="center">
-  <img src="./assets/zend-hashtable-replacement.png" alt="How Voyager replaces code with Zend HashTables" width="720">
-</p>
-
 
 ## Requirements
 

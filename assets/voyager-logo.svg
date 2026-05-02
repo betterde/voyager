@@ -1,0 +1,49 @@
+<svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Voyager</title>
+  <desc id="desc">Voyager logo with a compass orbit and code swap mark.</desc>
+  <defs>
+    <linearGradient id="orbitGradient" x1="56" y1="44" x2="207" y2="197" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8F7DF6"/>
+      <stop offset="1" stop-color="#5E4BCE"/>
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="93" y1="76" x2="167" y2="164" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF7FF"/>
+      <stop offset="1" stop-color="#DDF7EF"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1B2440" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="900" height="240" rx="28" fill="#FBFAF6"/>
+
+  <g filter="url(#softShadow)">
+    <circle cx="132" cy="120" r="76" fill="#FFFFFF"/>
+    <circle cx="132" cy="120" r="62" stroke="url(#orbitGradient)" stroke-width="14"/>
+    <path d="M182 84C194 101 198 123 191 144" stroke="#19BFA0" stroke-width="9" stroke-linecap="round"/>
+    <path d="M188 146L173 141L184 130" stroke="#19BFA0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M78 154C66 137 63 115 70 94" stroke="#F4B84A" stroke-width="9" stroke-linecap="round"/>
+    <path d="M73 91L88 97L76 108" stroke="#F4B84A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="82" y="82" width="60" height="46" rx="12" fill="url(#cardGradient)" stroke="#24304F" stroke-width="5"/>
+    <path d="M103 111L94 105L103 99" stroke="#5E4BCE" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M121 99L130 105L121 111" stroke="#5E4BCE" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M116 96L108 114" stroke="#24304F" stroke-width="5" stroke-linecap="round"/>
+
+    <rect x="124" y="112" width="60" height="46" rx="12" fill="#E9FFF8" stroke="#24304F" stroke-width="5"/>
+    <path d="M145 141L136 135L145 129" stroke="#19BFA0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M163 129L172 135L163 141" stroke="#19BFA0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M158 126L150 144" stroke="#24304F" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <path d="M132 59L143 115L132 181L121 125L132 59Z" fill="#FFFFFF" stroke="#24304F" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="132" cy="120" r="9" fill="#5E4BCE" stroke="#24304F" stroke-width="4"/>
+
+  <g>
+    <text x="250" y="125" fill="#24304F" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="76" font-weight="800" letter-spacing="0">Voyager</text>
+    <rect x="255" y="145" width="235" height="10" rx="5" fill="#F4B84A" opacity="0.9"/>
+    <text x="253" y="183" fill="#65708F" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="24" font-weight="600" letter-spacing="0">Runtime function and method redefinition for PHP</text>
+  </g>
+</svg>

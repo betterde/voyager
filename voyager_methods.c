@@ -257,10 +257,11 @@ static void php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int a
     zend_function *func, *fe, *source_fe = NULL, *orig_fe = NULL;
     zend_string *methodname_lower;
     long argc = ZEND_NUM_ARGS();
-    long flags = ZEND_ACC_PUBLIC;
+    long flags = 0;
     zval *args;
     long opt_arg_pos = 3;
     zend_bool remove_temp = 0;
+    zend_bool flags_overridden = 0;
 
     if (argc < 2 || zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, 2, "SS", &classname, &methodname) == FAILURE ||
             !ZSTR_LEN(classname) || !ZSTR_LEN(methodname)) {
@@ -283,9 +284,12 @@ static void php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int a
     }
 
     if (argc > opt_arg_pos) {
-        if (Z_TYPE(args[opt_arg_pos]) == IS_NULL || Z_TYPE(args[opt_arg_pos]) == IS_LONG) {
+        if (Z_TYPE(args[opt_arg_pos]) == IS_NULL) {
+            /* Keep the original method flags when redefining unless flags are explicitly provided. */
+        } else if (Z_TYPE(args[opt_arg_pos]) == IS_LONG) {
             convert_to_long_ex(&(args[opt_arg_pos]));
             flags = Z_LVAL(args[opt_arg_pos]);
+            flags_overridden = 1;
             if (flags & PHP_VOYAGER_ACC_RETURN_REFERENCE && source_fe) {
                 php_error_docref(NULL, E_WARNING, "VOYAGER_ACC_RETURN_REFERENCE flag is not applicable for closures");
             }
@@ -333,6 +337,14 @@ static void php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int a
         }
     }
 
+    if (!flags_overridden) {
+        if (orig_fe) {
+            flags = orig_fe->common.fn_flags & (ZEND_ACC_PPP_MASK | ZEND_ACC_STATIC | PHP_VOYAGER_ACC_RETURN_REFERENCE);
+        } else {
+            flags = ZEND_ACC_PUBLIC;
+        }
+    }
+
     if (!source_fe) {
         if (php_voyager_generate_lambda_method(arguments, NULL, 0, phpcode, &source_fe,
                              (flags & PHP_VOYAGER_ACC_RETURN_REFERENCE) == PHP_VOYAGER_ACC_RETURN_REFERENCE,
@@ -356,6 +368,7 @@ static void php_voyager_method_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int a
         func->common.fn_flags |= ZEND_ACC_PUBLIC;
     }
     func->common.fn_flags &= ~ZEND_ACC_CLOSURE;
+    func->common.fn_flags &= ~ZEND_ACC_STATIC;
 
     if (flags & ZEND_ACC_STATIC) {
         func->common.fn_flags |= ZEND_ACC_STATIC;

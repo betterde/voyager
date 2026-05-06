@@ -41,7 +41,7 @@ extern PHPAPI ZEND_COLD void php_error_docref(const char *docref, int type, cons
 #define debug_printf(...) do { } while (0)
 #endif
 
-#define PHP_VOYAGER_VERSION "8.2.1"
+#define PHP_VOYAGER_VERSION "8.2.2"
 
 PHP_MINIT_FUNCTION(voyager);
 PHP_MSHUTDOWN_FUNCTION(voyager);

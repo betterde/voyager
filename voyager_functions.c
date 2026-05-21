@@ -824,6 +824,7 @@ static void php_voyager_function_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int
     parsed_return_type return_type;
     parsed_is_strict is_strict;
     zend_bool return_ref = 0;
+    zend_bool return_ref_overridden = 0;
     zend_function *orig_fe = NULL, *source_fe = NULL, *func;
     char target_function_type;
     zval *args;
@@ -853,10 +854,12 @@ static void php_voyager_function_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int
     if (argc > opt_arg_pos && !source_fe) {
         switch (Z_TYPE(args[opt_arg_pos])) {
             case IS_NULL:
+                break;
             case IS_TRUE:
             case IS_FALSE:
                 convert_to_boolean_ex(&args[opt_arg_pos]);
                 return_ref = Z_TYPE(args[opt_arg_pos]) == IS_TRUE;
+                return_ref_overridden = 1;
                 break;
             default:
                 php_error_docref(NULL, E_WARNING, "return_ref should be boolean");
@@ -890,6 +893,10 @@ static void php_voyager_function_add_or_update(INTERNAL_FUNCTION_PARAMETERS, int
     if (add_or_update == HASH_UPDATE &&
         (orig_fe = php_voyager_fetch_function(funcname, PHP_VOYAGER_FETCH_FUNCTION_REMOVE)) == NULL) {
         RETURN_FALSE;
+    }
+
+    if (!source_fe && !return_ref_overridden && orig_fe) {
+        return_ref = (orig_fe->common.fn_flags & PHP_VOYAGER_ACC_RETURN_REFERENCE) == PHP_VOYAGER_ACC_RETURN_REFERENCE;
     }
 
     funcname_lower = zend_string_tolower(funcname);
